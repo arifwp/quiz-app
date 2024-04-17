@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import QUESTIONS from '../questions.js';
 import quizCompleteImg from '../assets/quiz-complete.png';
+import Question from "./Question.jsx";
 
 export default function Quiz() {
     const [userAnswers, setUserAnswers] = useState([]);
@@ -8,11 +9,15 @@ export default function Quiz() {
     const activeQuestionIndex = userAnswers.length;
     const quizIsComplete = activeQuestionIndex === QUESTIONS.length;
 
-    function handleSelectAnswer(selectedAnswer) {
-        setUserAnswers((prevUserAnswers) => {
-            return [...prevUserAnswers, selectedAnswer];
-        });
-    }
+    const handleSelectAnswer = useCallback(
+        function handleSelectAnswer(selectedAnswer) {
+            setUserAnswers((prevUserAnswers) => {
+                return [...prevUserAnswers, selectedAnswer];
+            });
+
+        }, [activeQuestionIndex]);
+
+    const handleSkipAnswer = useCallback(() => handleSelectAnswer(null), [handleSelectAnswer]);
 
     if (quizIsComplete) {
         return (
@@ -23,23 +28,14 @@ export default function Quiz() {
         );
     }
 
-    const shuffleAnswers = [...QUESTIONS[activeQuestionIndex].answers];
-    shuffleAnswers.sort(() => Math.random() - 0.5);
-
     return (
         <div id="quiz">
-            <div id="question">
-                <h2>{QUESTIONS[activeQuestionIndex].text}</h2>
-                <ul id="answers">
-                    {shuffleAnswers.map(answer => (
-                        <li key={answer} className="answer">
-                            <button onClick={() => handleSelectAnswer(answer)}>
-                                {answer}
-                            </button>
-                        </li>
-                    ))}
-                </ul>
-            </div>
+            <Question
+                key={activeQuestionIndex}
+                questionIndex={activeQuestionIndex}
+                onSelectAnswer={handleSelectAnswer}
+                onSkipAnswer={handleSkipAnswer}
+            />
         </div>
     );
 }
